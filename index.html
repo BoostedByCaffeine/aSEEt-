@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>aSEEt — Universal WebGL2 &amp; Three.js Asset Studio</title>
+
+  <!-- Fonts: Inter for crisp studio UI, JetBrains Mono for technical telemetry -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            obsidian: {
+              950: '#07090d',
+              900: '#0b0d12',
+              850: '#0f1219',
+              800: '#12151e',
+              750: '#171b26',
+              700: '#1c2130',
+              600: '#222736',
+              500: '#2e3548',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Three.js 0.170.0 ES Module Import Map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="flex flex-col h-screen w-screen overflow-hidden select-none bg-obsidian-900 text-slate-200">
+
+  <!-- Hidden File Inputs for Local Files & Folder Selection -->
+  <input id="fileInput" type="file" multiple
+    accept=".glb,.gltf,.bin,.obj,.mtl,.fbx,.stl,.ply,.hdr,.js,.mjs,.png,.jpg,.jpeg,.webp,.tga,.bmp" class="hidden" />
+  <input id="jsFileInput" type="file" accept=".js,.mjs" class="hidden" />
+  <input id="folderInput" type="file" webkitdirectory directory multiple class="hidden" />
+
+  <!-- ======================================================================= -->
+  <!-- TOP HEADER BAR                                                          -->
+  <!-- ======================================================================= -->
+  <header id="topHeader"
+    class="h-12 shrink-0 bg-obsidian-800 border-b border-obsidian-600 px-3 flex items-center justify-between gap-2 z-30">
+    <!-- Left: Sidebar Toggle + aSEEt Brand + WebGL2 Badge -->
+    <div class="flex items-center gap-2.5 min-w-0">
+      <button id="toggleLeftBtn" title="Toggle Asset &amp; Hierarchy Panel"
+        class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-obsidian-700 transition">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <line x1="9" y1="3" x2="9" y2="21" />
+        </svg>
+      </button>
+
+      <!-- Brand Logo: Geometric 3D Eye/Cube -->
+      <div class="flex items-center gap-2">
+        <div
+          class="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-500/20 via-indigo-500/15 to-emerald-500/20 border border-sky-400/30 flex items-center justify-center shrink-0">
+          <svg class="w-4.5 h-4.5" width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2.5L20.5 7.4V16.6L12 21.5L3.5 16.6V7.4L12 2.5Z" stroke="#38bdf8" stroke-width="1.6"
+              stroke-linejoin="round" />
+            <path
+              d="M5.8 12C7.4 9.5 9.6 8.3 12 8.3C14.4 8.3 16.6 9.5 18.2 12C16.6 14.5 14.4 15.7 12 15.7C9.6 15.7 7.4 14.5 5.8 12Z"
+              stroke="#34d399" stroke-width="1.5" stroke-linejoin="round" />
+            <circle cx="12" cy="12" r="2.1" fill="#e2e8f0" />
+          </svg>
+        </div>
+        <div class="flex items-baseline gap-1.5">
+          <span class="font-bold tracking-tight text-sm text-white">a<span class="text-sky-400">SEE</span>t</span>
+          <span id="headerProjectTag"
+            class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30">klasik3d</span>
+        </div>
+      </div>
+
+      <span
+        class="hidden lg:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-obsidian-900 border border-obsidian-600 text-[10px] font-mono text-slate-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>WebGL2
+      </span>
+    </div>
+
+    <!-- Center: Project Workspace Profile Switcher -->
+    <div class="flex items-center bg-obsidian-900 p-0.5 rounded-lg border border-obsidian-600">
+      <button data-workspace="klasik3d"
+        class="workspace-btn px-2.5 py-1 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+        <span>klasik3d</span>
+      </button>
+      <button data-workspace="brewingbad"
+        class="workspace-btn px-2.5 py-1 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        <span>Brewing Bad</span>
+      </button>
+      <button data-workspace="neutral"
+        class="workspace-btn px-2.5 py-1 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+        <span class="hidden md:inline">Neutral Studio</span>
+        <span class="md:hidden">Neutral</span>
+      </button>
+      <button data-workspace="custom"
+        class="workspace-btn px-2.5 py-1 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span>
+        <span>Custom</span>
+      </button>
+    </div>
+
+    <!-- Right: File Actions, Snapshot, Zen View, Help, Inspector Toggle -->
+    <div class="flex items-center gap-1.5">
+      <button id="openFilesBtn" title="Open local 3D files (.glb, .gltf, .obj, .fbx, .stl, .ply, .hdr)"
+        class="px-2.5 py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-xs font-medium text-slate-200 flex items-center gap-1.5 transition">
+        <svg class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+        <span class="hidden sm:inline">Open Files</span>
+      </button>
+
+      <button id="openProjectBtn" title="Open Local Project Folder (Direct Read &amp; Save)"
+        class="px-2.5 py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-emerald-500/40 text-xs font-medium text-emerald-200 hidden md:flex items-center gap-1.5 transition">
+        <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+        <span>Open Project</span>
+      </button>
+
+      <button id="codeStudioToggleBtn" title="JS Code Studio — Read, Paste &amp; Preview Procedural JS (C)"
+        class="px-2.5 py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-violet-500/40 text-xs font-medium text-violet-200 flex items-center gap-1.5 transition">
+        <svg class="w-3.5 h-3.5 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 18 22 12 16 6" />
+          <polyline points="8 6 2 12 8 18" />
+        </svg>
+        <span class="hidden sm:inline">JS Code</span>
+      </button>
+
+      <!-- Export Dropdown Container (GLB & GLB -> JS) -->
+      <div class="relative">
+        <button id="exportMenuBtn" title="Export Model (.glb or .js)"
+          class="px-2.5 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-xs font-medium text-sky-200 flex items-center gap-1.5 transition">
+          <svg class="w-3.5 h-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span class="hidden md:inline">Export</span>
+        </button>
+        <div id="exportPopover"
+          class="hidden absolute right-0 mt-1.5 w-64 rounded-xl bg-obsidian-800 border border-obsidian-600 shadow-2xl p-2 z-50 space-y-1">
+          <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 py-1">Export Current Model</div>
+          <button id="exportGlbBtn"
+            class="w-full text-left px-2.5 py-2 rounded-lg text-xs text-slate-200 hover:bg-obsidian-700 flex items-center justify-between transition">
+            <span>Binary GLTF Model</span>
+            <span class="text-[10px] font-mono text-sky-300">.GLB</span>
+          </button>
+          <div class="border-t border-obsidian-600/70 my-1"></div>
+          <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 py-1">Convert Model to JS</div>
+          <button id="exportJsGeoBtn"
+            class="w-full text-left px-2.5 py-2 rounded-lg text-xs text-slate-200 hover:bg-obsidian-700 transition">
+            <div class="flex items-center justify-between">
+              <span>Editable BufferGeometry</span>
+              <span class="text-[10px] font-mono text-violet-300">.JS</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Pure Three.js meshes &amp; editable materials</div>
+          </button>
+          <button id="exportJsBase64Btn"
+            class="w-full text-left px-2.5 py-2 rounded-lg text-xs text-slate-200 hover:bg-obsidian-700 transition">
+            <div class="flex items-center justify-between">
+              <span>Self-Contained GLB Module</span>
+              <span class="text-[10px] font-mono text-emerald-300">.JS</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Preserves textures, rigs &amp; animations</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Snapshot Dropdown Container -->
+      <div class="relative">
+        <button id="snapshotMenuBtn" title="Capture PNG Snapshot"
+          class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-xs font-medium text-slate-200 flex items-center gap-1.5 transition">
+          <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+          <span class="hidden lg:inline">Snap</span>
+        </button>
+        <div id="snapshotPopover"
+          class="hidden absolute right-0 mt-1.5 w-52 rounded-xl bg-obsidian-800 border border-obsidian-600 shadow-2xl p-2 z-50">
+          <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 py-1">PNG Screenshot</div>
+          <button id="snapStudioBtn"
+            class="w-full text-left px-2.5 py-2 rounded-lg text-xs text-slate-200 hover:bg-obsidian-700 flex items-center justify-between transition">
+            <span>With Studio Backdrop</span>
+            <span class="text-[10px] font-mono text-slate-400">PNG</span>
+          </button>
+          <button id="snapAlphaBtn"
+            class="w-full text-left px-2.5 py-2 rounded-lg text-xs text-slate-200 hover:bg-obsidian-700 flex items-center justify-between transition">
+            <span>Transparent Alpha</span>
+            <span class="text-[10px] font-mono text-emerald-400">RGBA</span>
+          </button>
+        </div>
+      </div>
+
+      <button id="zenToggleBtn" title="Zen / Clean View (H)"
+        class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-obsidian-700 transition">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+        </svg>
+      </button>
+
+      <button id="shortcutsBtn" title="Keyboard Shortcuts (?)"
+        class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-obsidian-700 transition">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      </button>
+
+      <button id="toggleRightBtn" title="Toggle Inspector Panel"
+        class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-obsidian-700 transition">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <line x1="15" y1="3" x2="15" y2="21" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ======================================================================= -->
+  <!-- MAIN WORKSPACE BODY (LEFT PANEL | VIEWPORT | RIGHT INSPECTOR)           -->
+  <!-- ======================================================================= -->
+  <div class="flex-1 flex min-h-0 relative overflow-hidden">
+
+    <!-- ===================================================================== -->
+    <!-- LEFT SIDEBAR: ASSET LIBRARY & SCENE HIERARCHY                         -->
+    <!-- ===================================================================== -->
+    <aside id="leftSidebar"
+      class="sidebar-panel w-[276px] shrink-0 bg-obsidian-800 border-r border-obsidian-600 flex flex-col min-h-0 z-20">
+      <!-- Left Panel Tab Switcher -->
+      <div class="p-2 border-b border-obsidian-600 flex gap-1 bg-obsidian-850">
+        <button data-left-tab="assets" class="left-tab-btn flex-1 py-1.5 rounded-lg text-[11px] font-medium transition">
+          Assets <span id="assetCountBadge"
+            class="ml-0.5 px-1 py-0.5 rounded bg-obsidian-700 text-[9px] font-mono text-slate-300">3</span>
+        </button>
+        <button data-left-tab="project" class="left-tab-btn flex-1 py-1.5 rounded-lg text-[11px] font-medium transition">
+          Project
+        </button>
+        <button data-left-tab="hierarchy" class="left-tab-btn flex-1 py-1.5 rounded-lg text-[11px] font-medium transition">
+          Scene <span id="nodeCountBadge"
+            class="ml-0.5 px-1 py-0.5 rounded bg-obsidian-700 text-[9px] font-mono text-slate-300">0</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: ASSET LIBRARY & LOCAL QUEUE -->
+      <div id="leftTabAssets" class="flex-1 flex flex-col min-h-0">
+        <!-- Search & Filter -->
+        <div class="p-2.5 space-y-2 border-b border-obsidian-600/70">
+          <div class="relative">
+            <svg class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input id="assetSearchInput" type="text" placeholder="Filter assets..."
+              class="w-full pl-8 pr-2.5 py-1.5 rounded-lg bg-obsidian-900 border border-obsidian-600 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500/70" />
+          </div>
+          <div class="flex items-center gap-1">
+            <button data-filter="all"
+              class="asset-filter-btn flex-1 py-1 rounded-md text-[11px] font-medium transition">All</button>
+            <button data-filter="3d"
+              class="asset-filter-btn flex-1 py-1 rounded-md text-[11px] font-medium transition">3D</button>
+            <button data-filter="js"
+              class="asset-filter-btn flex-1 py-1 rounded-md text-[11px] font-medium transition">JS</button>
+            <button data-filter="demo"
+              class="asset-filter-btn flex-1 py-1 rounded-md text-[11px] font-medium transition">Demos</button>
+          </div>
+        </div>
+
+        <!-- Asset List -->
+        <div id="assetListContainer" class="flex-1 overflow-y-auto p-2 space-y-1.5"></div>
+
+        <!-- Compact Local Drop Hint -->
+        <div class="p-2.5 border-t border-obsidian-600 bg-obsidian-850 space-y-1.5">
+          <button id="sidebarCodeTrigger"
+            class="w-full py-1.5 px-3 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 border border-violet-400/35 text-xs font-medium text-violet-200 flex items-center justify-center gap-1.5 transition">
+            <svg class="w-3.5 h-3.5 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6" />
+              <polyline points="8 6 2 12 8 18" />
+            </svg>
+            <span>Paste / Preview JS Code</span>
+          </button>
+          <button id="sidebarDropTrigger"
+            class="w-full py-2 px-3 rounded-lg border border-dashed border-obsidian-500 hover:border-sky-400/70 hover:bg-obsidian-750/60 text-center transition group">
+            <div class="text-[11px] font-medium text-slate-300 group-hover:text-sky-300">Drop 3D, JS or HDR files anywhere</div>
+            <div class="text-[10px] font-mono text-slate-500 mt-0.5">.glb .gltf .obj .fbx .stl .ply .js .hdr</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 2: LOCAL PROJECT FOLDER EXPLORER -->
+      <div id="leftTabProject" class="hidden flex-1 flex flex-col min-h-0">
+        <div class="p-2.5 space-y-2 border-b border-obsidian-600/70 bg-obsidian-850/50">
+          <div class="flex items-center justify-between gap-1.5">
+            <span id="projectRootLabel" class="text-[11px] font-mono font-semibold text-emerald-300 truncate">No Folder Open</span>
+            <div class="flex items-center gap-1 shrink-0">
+              <button id="refreshProjectBtn" title="Rescan Folder"
+                class="hidden p-1 rounded-md bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-slate-300 hover:text-white transition">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10" />
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                </svg>
+              </button>
+              <button id="watchProjectFileBtn" title="Auto-reload active project file on external disk save"
+                class="hidden px-1.5 py-1 rounded-md bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-[10px] font-mono text-slate-300 transition flex items-center gap-1">
+                <span id="watchDot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span>Watch</span>
+              </button>
+              <button id="projectOpenDirBtn"
+                class="px-2 py-1 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-[10px] font-medium text-emerald-200 transition">
+                Open Folder
+              </button>
+            </div>
+          </div>
+
+          <button id="reconnectProjectBtn"
+            class="hidden w-full py-1.5 px-2.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-[11px] font-medium text-sky-200 transition text-left flex items-center justify-between">
+            <span class="truncate">Reconnect: <strong id="reconnectProjectName"></strong></span>
+            <span class="font-mono text-[9px] text-sky-300 shrink-0 ml-1">GRANT</span>
+          </button>
+
+          <div class="relative">
+            <svg class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input id="projectSearchInput" type="text" placeholder="Filter project files..."
+              class="w-full pl-8 pr-2.5 py-1.5 rounded-lg bg-obsidian-900 border border-obsidian-600 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500/70" />
+          </div>
+        </div>
+
+        <div id="projectTreeContainer" class="flex-1 overflow-y-auto p-2 space-y-0.5 text-xs">
+          <div class="text-center py-8 px-3 text-xs text-slate-500 leading-relaxed">
+            Open a local project directory to browse <span class="font-mono text-slate-300">.js</span>,
+            <span class="font-mono text-slate-300">.glb</span>, <span class="font-mono text-slate-300">.gltf</span>,
+            <span class="font-mono text-slate-300">.obj</span> &amp; <span class="font-mono text-slate-300">.hdr</span>
+            files and save edits directly to disk.
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: SCENE HIERARCHY TREE -->
+      <div id="leftTabHierarchy" class="hidden flex-1 flex flex-col min-h-0">
+        <div
+          class="px-2.5 py-2 border-b border-obsidian-600/70 flex items-center justify-between gap-2 bg-obsidian-850/50">
+          <span class="text-[11px] text-slate-400 font-medium truncate" id="hierarchyAssetTitle">No Asset</span>
+          <div class="flex items-center gap-1 shrink-0">
+            <button id="unhideAllBtn" title="Show All Nodes"
+              class="px-2 py-0.5 rounded bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-[10px] text-slate-300 transition">Show
+              All</button>
+            <button id="clearSelectionBtn" title="Clear Selection"
+              class="px-2 py-0.5 rounded bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-[10px] text-slate-300 transition">Deselect</button>
+          </div>
+        </div>
+        <div class="p-2 border-b border-obsidian-600/70 space-y-1.5 bg-obsidian-850/40">
+          <div class="relative">
+            <svg class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input id="hierarchySearchInput" type="text" placeholder="Search nodes..."
+              class="w-full pl-8 pr-2 py-1 rounded-lg bg-obsidian-900 border border-obsidian-600 text-[11px] text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500/70" />
+          </div>
+          <div class="flex items-center gap-1">
+            <button id="expandAllNodesBtn"
+              class="flex-1 py-0.5 rounded bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-[10px] text-slate-300 transition">Expand All</button>
+            <button id="collapseAllNodesBtn"
+              class="flex-1 py-0.5 rounded bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-[10px] text-slate-300 transition">Collapse</button>
+          </div>
+        </div>
+        <div id="hierarchyTreeContainer" class="flex-1 overflow-y-auto p-2 space-y-0.5 font-sans text-xs"></div>
+      </div>
+    </aside>
+
+    <!-- ===================================================================== -->
+    <!-- CENTER 3D WEBGL2 VIEWPORT                                             -->
+    <!-- ===================================================================== -->
+    <main id="viewportContainer" class="flex-1 relative min-w-0 min-h-0 overflow-hidden bg-studio-klasik">
+      <!-- Primary WebGL2 Canvas -->
+      <canvas id="webglCanvas" class="block w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+
+      <!-- Floating Top-Center Shading & Visibility Pill Bar -->
+      <div id="viewportTopToolbar"
+        class="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 max-w-[96%] overflow-x-auto no-scrollbar">
+        <div class="glass-panel rounded-xl p-1 flex items-center gap-0.5 shrink-0">
+          <button data-shade="pbr" title="PBR Lit (1)"
+            class="shade-btn px-2.5 py-1 rounded-lg text-[11px] font-medium transition">PBR</button>
+          <button data-shade="litwire" title="Lit + Wireframe Overlay (2)"
+            class="shade-btn px-2.5 py-1 rounded-lg text-[11px] font-medium transition">Lit+Wire</button>
+          <button data-shade="wire" title="Wireframe Only (3)"
+            class="shade-btn px-2.5 py-1 rounded-lg text-[11px] font-medium transition">Wire</button>
+          <button data-shade="clay" title="Clay Studio Matcap (4)"
+            class="shade-btn px-2.5 py-1 rounded-lg text-[11px] font-medium transition">Clay</button>
+          <button data-shade="normals" title="World Normals (5)"
+            class="shade-btn px-2.5 py-1 rounded-lg text-[11px] font-medium transition">Normals</button>
+          <button data-shade="uv" title="UV Checker Grid (6)"
+            class="shade-btn px-2.5 py-1 rounded-lg text-[11px] font-medium transition">UV</button>
+          <button data-shade="unlit" title="Unlit Albedo (7)"
+            class="shade-btn px-2.5 py-1 rounded-lg text-[11px] font-medium transition">Unlit</button>
+        </div>
+
+        <div class="glass-panel rounded-xl p-1 flex items-center gap-0.5 shrink-0">
+          <button id="quickBackfaceBtn" title="Cycle Backface Mode (Default / Double-Sided / Highlight Backfaces)"
+            class="px-2 py-1 rounded-lg text-[11px] font-medium text-slate-300 hover:text-white hover:bg-white/10 transition flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+            <span id="quickBackfaceLabel" class="hidden xl:inline">Front</span>
+          </button>
+          <button id="quickCameraModeBtn" title="Toggle Perspective / Orthographic (O)"
+            class="px-2 py-1 rounded-lg text-[11px] font-mono text-slate-300 hover:text-white hover:bg-white/10 transition">PERSP</button>
+          <button id="quickFrameBtn" title="Frame Asset (F)"
+            class="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+          <button id="quickTurntableBtn" title="Toggle Turntable Auto-Rotate (T)"
+            class="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              <polyline points="21 3 21 9 15 9" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Floating Top-Right Quick View Presets -->
+      <div id="viewportCameraPresets"
+        class="absolute top-14 sm:top-3 right-3 z-20 hidden md:flex flex-col items-end gap-1.5">
+        <div class="glass-panel rounded-xl p-1 flex items-center gap-0.5 text-[10px] font-mono">
+          <button data-cam-view="iso"
+            class="cam-preset-btn px-2 py-1 rounded-md text-slate-300 hover:text-white hover:bg-white/10 transition">ISO</button>
+          <button data-cam-view="front"
+            class="cam-preset-btn px-2 py-1 rounded-md text-slate-300 hover:text-white hover:bg-white/10 transition">F</button>
+          <button data-cam-view="back"
+            class="cam-preset-btn px-2 py-1 rounded-md text-slate-300 hover:text-white hover:bg-white/10 transition">BK</button>
+          <button data-cam-view="left"
+            class="cam-preset-btn px-2 py-1 rounded-md text-slate-300 hover:text-white hover:bg-white/10 transition">L</button>
+          <button data-cam-view="right"
+            class="cam-preset-btn px-2 py-1 rounded-md text-slate-300 hover:text-white hover:bg-white/10 transition">R</button>
+          <button data-cam-view="top"
+            class="cam-preset-btn px-2 py-1 rounded-md text-slate-300 hover:text-white hover:bg-white/10 transition">T</button>
+        </div>
+      </div>
+
+      <!-- Floating Zen Exit Chip -->
+      <button id="exitZenChip"
+        class="hidden absolute top-3 left-3 z-30 glass-panel px-3 py-1.5 rounded-xl text-xs font-medium text-slate-200 hover:text-white flex items-center gap-1.5 transition">
+        <span>Exit Zen View</span>
+        <kbd
+          class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 text-[10px] font-mono text-slate-400">H</kbd>
+      </button>
+
+      <!-- Bottom-Left: WebGL2 Real-Time Diagnostics HUD -->
+      <div id="diagnosticsHud"
+        class="absolute bottom-3 left-3 z-20 glass-panel rounded-xl p-2.5 w-60 text-[11px] font-mono transition-opacity">
+        <div class="flex items-center justify-between mb-1.5 pb-1 border-b border-white/10">
+          <div class="flex items-center gap-1.5">
+            <span id="hudWebglDot"
+              class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]"></span>
+            <span id="hudContextLabel" class="font-semibold text-slate-200 text-[10px] tracking-wide">WEBGL2
+              ACTIVE</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span id="hudFps" class="text-emerald-400 font-semibold">60 FPS</span>
+            <button id="toggleHudCollapseBtn" title="Minimize HUD" class="text-slate-400 hover:text-white">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="hudDetailsBody" class="space-y-1 text-[10px] text-slate-400">
+          <div id="hudGpuName" class="truncate text-slate-300" title="GPU Renderer">Detecting GPU...</div>
+          <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 pt-0.5">
+            <div class="flex justify-between"><span>Calls</span><span id="hudDrawCalls" class="text-slate-200">0</span>
+            </div>
+            <div class="flex justify-between"><span>Tris</span><span id="hudTris" class="text-slate-200">0</span></div>
+            <div class="flex justify-between"><span>Verts</span><span id="hudVerts" class="text-slate-200">0</span>
+            </div>
+            <div class="flex justify-between"><span>Tex/Geo</span><span id="hudTexGeo" class="text-slate-200">0/0</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-slate-400">
+            <span>Est. Tex VRAM</span>
+            <span id="hudVram" class="text-slate-200">0.0 MB</span>
+          </div>
+          <div class="pt-1 mt-1 border-t border-white/10 flex items-center justify-between text-sky-300">
+            <span class="text-slate-400">Dims</span>
+            <span id="hudDims">0.00 × 0.00 × 0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom-Center: Floating Animation Controller -->
+      <div id="animationBar"
+        class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 z-20 glass-panel rounded-xl px-3 py-2 flex items-center gap-2.5 max-w-[92%] sm:max-w-xl">
+        <button id="animPlayPauseBtn" title="Play / Pause (Space)"
+          class="w-7 h-7 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-300 flex items-center justify-center shrink-0 transition">
+          <svg id="animPlayIcon" class="w-3.5 h-3.5 hidden" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="6 4 20 12 6 20 6 4" />
+          </svg>
+          <svg id="animPauseIcon" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16" />
+            <rect x="14" y="4" width="4" height="16" />
+          </svg>
+        </button>
+
+        <select id="animClipSelect"
+          class="bg-obsidian-900/90 border border-obsidian-600 rounded-lg px-2 py-1 text-[11px] text-slate-200 max-w-[130px] focus:outline-none focus:border-sky-500"></select>
+
+        <div class="flex items-center gap-2 flex-1 min-w-[100px]">
+          <input id="animTimelineSlider" type="range" min="0" max="1" step="0.001" value="0"
+            class="studio-slider flex-1" />
+          <span id="animTimecode" class="text-[10px] font-mono text-slate-300 whitespace-nowrap w-20 text-right">0.00 /
+            0.00s</span>
+        </div>
+
+        <button id="animLoopBtn" title="Toggle Loop"
+          class="p-1.5 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30 transition">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="17 1 21 5 17 9" />
+            <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+            <polyline points="7 23 3 19 7 15" />
+            <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+          </svg>
+        </button>
+
+        <div class="hidden sm:flex items-center gap-1">
+          <span id="animSpeedVal" class="text-[10px] font-mono text-slate-400 w-7 text-right">1.0x</span>
+          <input id="animSpeedSlider" type="range" min="0.1" max="2.0" step="0.1" value="1.0" class="studio-slider w-14"
+            title="Playback Speed" />
+        </div>
+      </div>
+
+      <!-- Bottom-Right: Interactive 3D Orientation Axes Gizmo -->
+      <div id="gizmoWrapper"
+        class="absolute bottom-3 right-3 z-20 w-[86px] h-[86px] rounded-full glass-panel flex items-center justify-center cursor-pointer"
+        title="Click axis handles to snap camera view">
+        <canvas id="axesGizmoCanvas" width="172" height="172" class="w-[86px] h-[86px]"></canvas>
+      </div>
+
+      <!-- Slide-over JS Code Studio Drawer -->
+      <section id="codeStudioDrawer"
+        class="code-drawer code-drawer-hidden absolute top-3 bottom-3 right-3 z-30 w-[min(94%,540px)] rounded-2xl bg-obsidian-850/95 backdrop-blur-xl border border-obsidian-500 shadow-2xl flex flex-col overflow-hidden">
+        <div class="px-3 py-2.5 bg-obsidian-800 border-b border-obsidian-600 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-xs font-semibold text-white flex items-center gap-1.5">
+              <span>JS Code Studio</span>
+              <span id="jsDirtyDot" title="Unsaved changes" class="hidden w-2 h-2 rounded-full bg-amber-400"></span>
+            </span>
+            <span id="jsSourceBadge"
+              class="px-1.5 py-0.5 rounded bg-violet-500/15 border border-violet-400/30 text-[9px] font-mono text-violet-300">SCRATCHPAD</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <button id="loadJsFileBtn"
+              class="px-2 py-1 rounded-md bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-[11px] text-slate-200 transition">Open .js</button>
+            <button id="saveJsCodeBtn" title="Save JS to Disk (Ctrl+S)"
+              class="px-2 py-1 rounded-md bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-[11px] font-medium text-sky-200 transition">Save .js</button>
+            <button id="saveAsJsCodeBtn" title="Save As New .js File"
+              class="px-2 py-1 rounded-md bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-[11px] text-slate-300 transition">Save As</button>
+            <button id="runJsCodeBtn" title="Run &amp; Preview (Ctrl+Enter)"
+              class="px-2.5 py-1 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/45 text-[11px] font-semibold text-emerald-200 transition">Run</button>
+            <button id="closeCodeStudioBtn" title="Close Drawer (Esc)"
+              class="p-1 rounded-md text-slate-400 hover:text-white hover:bg-obsidian-700 transition">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="px-3 py-2 bg-obsidian-900/70 border-b border-obsidian-600/80 flex items-center gap-2">
+          <input id="jsAssetNameInput" type="text" value="Custom_Asset.js" placeholder="Asset name..."
+            class="flex-1 min-w-0 px-2 py-1 rounded-md bg-obsidian-900 border border-obsidian-600 text-[11px] font-mono text-slate-200 focus:outline-none focus:border-violet-400" />
+          <select id="jsTemplateSelect"
+            class="bg-obsidian-900 border border-obsidian-600 rounded-md px-2 py-1 text-[11px] text-slate-300 focus:outline-none focus:border-violet-400">
+            <option value="">Templates...</option>
+            <option value="snippet">Coffee Cup (Snippet)</option>
+            <option value="animated">Beacon Prop (Animated)</option>
+            <option value="esm">Stylized Crate (ES Module)</option>
+          </select>
+          <button id="jsWrapToggleBtn" title="Toggle Line Wrap"
+            class="px-1.5 py-1 rounded-md bg-obsidian-800 border border-obsidian-600 text-[10px] font-mono text-slate-400 hover:text-white transition">WRAP</button>
+          <button id="jsCopyBtn" title="Copy Code"
+            class="px-1.5 py-1 rounded-md bg-obsidian-800 border border-obsidian-600 text-[10px] font-mono text-slate-400 hover:text-white transition">COPY</button>
+          <button id="jsClearBtn" title="Clear Editor"
+            class="px-1.5 py-1 rounded-md bg-obsidian-800 border border-obsidian-600 text-[10px] font-mono text-slate-400 hover:text-rose-300 transition">CLR</button>
+        </div>
+
+        <div class="flex-1 flex min-h-0 bg-obsidian-950 font-mono text-xs overflow-hidden">
+          <pre id="jsLineNumbers"
+            class="m-0 py-3 px-2.5 bg-obsidian-900/80 border-r border-obsidian-700 text-right text-[11px] text-slate-500 select-none overflow-hidden code-editor-area min-w-[38px]">1</pre>
+          <textarea id="jsCodeInput" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+            placeholder="// Paste Three.js code or drop a .js file anywhere...&#10;// Return a THREE.Group / THREE.Mesh or { scene, animations, update }&#10;// Supports ES Modules (import * as THREE from 'three'; export default ...)&#10;// Press Ctrl+Enter to preview immediately."
+            class="code-editor-area flex-1 w-full h-full p-3 bg-transparent text-slate-100 placeholder-slate-600 resize-none focus:outline-none overflow-auto whitespace-pre"></textarea>
+        </div>
+
+        <div id="jsErrorBanner"
+          class="hidden px-3 py-2 bg-rose-950/80 border-t border-rose-500/40 text-[11px] font-mono text-rose-200 max-h-24 overflow-y-auto">
+          <span id="jsErrorText"></span>
+        </div>
+
+        <div class="px-3 py-1.5 bg-obsidian-800 border-t border-obsidian-600 flex items-center justify-between text-[10px] font-mono text-slate-400">
+          <span id="jsEditorStatus">Ln 1, Col 1 • Ctrl+Enter to preview</span>
+          <span class="text-slate-500">THREE injected globally</span>
+        </div>
+      </section>
+
+      <!-- Loading Spinner Overlay -->
+      <div id="loadingOverlay"
+        class="hidden absolute inset-0 z-30 bg-obsidian-950/65 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+        <div class="w-9 h-9 rounded-full border-2 border-obsidian-600 border-t-sky-400 animate-spin"></div>
+        <div id="loadingLabel" class="text-xs font-mono text-slate-200">Loading 3D Asset...</div>
+      </div>
+
+      <!-- Full-Viewport Drag & Drop Overlay -->
+      <div id="dropOverlay"
+        class="hidden absolute inset-0 z-40 bg-obsidian-950/85 backdrop-blur-md p-6 flex items-center justify-center pointer-events-none">
+        <div
+          class="w-full h-full rounded-2xl border-2 border-dashed border-sky-400 drop-active flex flex-col items-center justify-center text-center p-6">
+          <div
+            class="w-14 h-14 rounded-2xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center mb-4">
+            <svg class="w-7 h-7 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </div>
+          <h2 class="text-lg font-semibold text-white">Drop Local 3D, JS Assets or HDR Environment</h2>
+          <p class="text-xs text-slate-400 mt-1.5 max-w-md">
+            Supports <span class="font-mono text-sky-300">.glb, .gltf (+ .bin &amp; textures), .obj (+ .mtl), .fbx,
+              .stl, .ply, .js</span> and <span class="font-mono text-emerald-300">.hdr</span> environment maps. Folders &amp;
+            multi-file drops supported.
+          </p>
+        </div>
+      </div>
+
+      <!-- Toast Notification Stack -->
+      <div id="toastStack"
+        class="absolute top-14 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none">
+      </div>
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- RIGHT SIDEBAR: INSPECTOR (VIEW | LIGHTING | MATERIAL)                 -->
+    <!-- ===================================================================== -->
+    <aside id="rightSidebar"
+      class="sidebar-panel w-[304px] shrink-0 bg-obsidian-800 border-l border-obsidian-600 flex flex-col min-h-0 z-20">
+      <!-- Inspector Tab Switcher -->
+      <div class="p-2 border-b border-obsidian-600 flex gap-1 bg-obsidian-850">
+        <button data-right-tab="view"
+          class="right-tab-btn flex-1 py-1.5 rounded-lg text-xs font-medium transition">Visibility</button>
+        <button data-right-tab="lighting"
+          class="right-tab-btn flex-1 py-1.5 rounded-lg text-xs font-medium transition">Lighting</button>
+        <button data-right-tab="material"
+          class="right-tab-btn flex-1 py-1.5 rounded-lg text-xs font-medium transition">Material</button>
+        <button data-right-tab="optimize"
+          class="right-tab-btn flex-1 py-1.5 rounded-lg text-xs font-medium transition">Optimize</button>
+      </div>
+
+      <!-- TAB 1: VISIBILITY, WORKSPACE TOOLS & HELPERS -->
+      <div id="rightTabView" class="flex-1 overflow-y-auto p-3 space-y-4">
+
+        <!-- Project-Specific Tools Card (klasik3d) -->
+        <section id="klasikToolsCard" class="rounded-xl bg-obsidian-850 border border-amber-500/25 p-3 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Stylized / Retro Render
+            </span>
+            <span class="text-[10px] font-mono text-slate-500">RETRO</span>
+          </div>
+
+          <label class="flex items-center justify-between cursor-pointer">
+            <div>
+              <div class="text-xs text-slate-200">Retro Crisp Textures</div>
+              <div class="text-[10px] text-slate-500">Nearest-neighbor filtering</div>
+            </div>
+            <input id="retroNearestToggle" type="checkbox" class="accent-amber-400 w-4 h-4 rounded cursor-pointer" />
+          </label>
+
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-300">Viewport Pixel Scale</span>
+              <span id="pixelScaleReadout" class="font-mono text-[11px] text-amber-300">1.0x</span>
+            </div>
+            <div class="grid grid-cols-4 gap-1 bg-obsidian-900 p-1 rounded-lg border border-obsidian-600">
+              <button data-pixel-scale="1"
+                class="pixel-scale-btn py-1 rounded text-[11px] font-mono transition">1x</button>
+              <button data-pixel-scale="0.5"
+                class="pixel-scale-btn py-1 rounded text-[11px] font-mono transition">0.5x</button>
+              <button data-pixel-scale="0.35"
+                class="pixel-scale-btn py-1 rounded text-[11px] font-mono transition">0.35x</button>
+              <button data-pixel-scale="0.25"
+                class="pixel-scale-btn py-1 rounded text-[11px] font-mono transition">0.25x</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Project-Specific Tools Card (Brewing Bad) -->
+        <section id="brewingToolsCard" class="rounded-xl bg-obsidian-850 border border-emerald-500/25 p-3 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Atmosphere &amp; Glow
+            </span>
+            <span class="text-[10px] font-mono text-slate-500">ALCHEMY</span>
+          </div>
+
+          <label class="flex items-center justify-between cursor-pointer">
+            <div>
+              <div class="text-xs text-slate-200">Atmospheric Lab Fog</div>
+              <div class="text-[10px] text-slate-500">Moody depth &amp; glow separation</div>
+            </div>
+            <input id="labFogToggle" type="checkbox" class="accent-emerald-400 w-4 h-4 rounded cursor-pointer" />
+          </label>
+
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-300">Emissive Glow Boost</span>
+              <span id="emissiveBoostVal" class="font-mono text-[11px] text-emerald-300">1.0x</span>
+            </div>
+            <input id="emissiveBoostSlider" type="range" min="0" max="3" step="0.05" value="1"
+              class="studio-slider w-full" />
+          </div>
+        </section>
+
+        <!-- Backface & Winding Visibility -->
+        <section class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-2.5">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Backface &amp; Face Culling
+          </div>
+          <div class="grid grid-cols-3 gap-1 bg-obsidian-900 p-1 rounded-lg border border-obsidian-600">
+            <button data-backface="default"
+              class="backface-mode-btn py-1.5 rounded text-[11px] font-medium transition">Default</button>
+            <button data-backface="double"
+              class="backface-mode-btn py-1.5 rounded text-[11px] font-medium transition">2-Sided</button>
+            <button data-backface="highlight"
+              class="backface-mode-btn py-1.5 rounded text-[11px] font-medium transition">Highlight</button>
+          </div>
+          <p class="text-[10px] text-slate-500 leading-relaxed">
+            <span class="text-pink-400 font-medium">Highlight</span> renders exposed backfaces in magenta to immediately
+            catch inverted normals or holes.
+          </p>
+        </section>
+
+        <!-- Scene Visibility Helpers -->
+        <section class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-2">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Viewport Helpers</div>
+
+          <label class="flex items-center justify-between text-xs py-0.5 cursor-pointer">
+            <span class="text-slate-300">Metric Floor Grid <kbd
+                class="ml-1 text-[10px] font-mono text-slate-500">G</kbd></span>
+            <input id="helperGridToggle" type="checkbox" checked class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between text-xs py-0.5 cursor-pointer">
+            <span class="text-slate-300">1.75m Human Scale Ref</span>
+            <input id="helperScaleRefToggle" type="checkbox" class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between text-xs py-0.5 cursor-pointer">
+            <span class="text-slate-300">Ground Shadow Receiver</span>
+            <input id="helperShadowPlaneToggle" type="checkbox" checked
+              class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between text-xs py-0.5 cursor-pointer">
+            <span class="text-slate-300">Bounding Box &amp; Bounds</span>
+            <input id="helperBBoxToggle" type="checkbox" class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between text-xs py-0.5 cursor-pointer">
+            <span class="text-slate-300">World Axes Helper</span>
+            <input id="helperAxesToggle" type="checkbox" class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between text-xs py-0.5 cursor-pointer">
+            <span class="text-slate-300 flex items-center gap-1.5">
+              Skeleton Helper
+              <span id="skeletonStatusBadge"
+                class="px-1.5 py-0.2 rounded bg-obsidian-700 text-[9px] font-mono text-slate-400">NONE</span>
+            </span>
+            <input id="helperSkeletonToggle" type="checkbox" class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between text-xs py-0.5 cursor-pointer">
+            <span class="text-slate-300">Vertex Normals <span class="text-[10px] text-slate-500">(&lt;45k
+                tris)</span></span>
+            <input id="helperNormalsToggle" type="checkbox" class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between text-xs py-0.5 cursor-pointer">
+            <span class="text-slate-300">WebGL2 Diagnostics HUD</span>
+            <input id="helperHudToggle" type="checkbox" checked class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+        </section>
+
+        <!-- Camera, Alignment & Turntable -->
+        <section class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-2.5">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Camera &amp; Turntable</div>
+
+          <label class="flex items-center justify-between text-xs cursor-pointer">
+            <span class="text-slate-300">Auto-Center &amp; Ground (Y=0)</span>
+            <input id="autoGroundToggle" type="checkbox" checked class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">Field of View (FOV)</span>
+              <span id="fovVal" class="font-mono text-[11px] text-slate-300">42°</span>
+            </div>
+            <input id="fovSlider" type="range" min="20" max="85" step="1" value="42" class="studio-slider w-full" />
+          </div>
+
+          <label class="flex items-center justify-between text-xs cursor-pointer">
+            <span class="text-slate-300">Turntable Auto-Rotate <kbd
+                class="ml-1 text-[10px] font-mono text-slate-500">T</kbd></span>
+            <input id="turntableToggle" type="checkbox" class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">Turntable Speed</span>
+              <span id="turntableSpeedVal" class="font-mono text-[11px] text-slate-300">1.5</span>
+            </div>
+            <input id="turntableSpeedSlider" type="range" min="-6" max="6" step="0.25" value="1.5"
+              class="studio-slider w-full" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 pt-1">
+            <button id="inspectorFrameBtn"
+              class="py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-xs text-slate-200 transition">Frame
+              Asset</button>
+            <button id="inspectorResetCamBtn"
+              class="py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-xs text-slate-200 transition">Reset
+              Camera</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- TAB 2: LIGHTING, ENVIRONMENT & RENDERER -->
+      <div id="rightTabLighting" class="hidden flex-1 overflow-y-auto p-3 space-y-4">
+
+        <!-- Custom Studio Profile Manager -->
+        <section id="customStudioCard" class="rounded-xl bg-obsidian-850 border border-violet-500/30 p-3 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-violet-300">Custom Studio Profiles</span>
+            <span class="text-[10px] font-mono text-slate-500">LOCAL</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <select id="customProfileSelect"
+              class="flex-1 min-w-0 bg-obsidian-900 border border-obsidian-600 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-violet-400"></select>
+            <button id="deleteCustomProfileBtn" title="Delete Selected Profile"
+              class="p-1.5 rounded-lg bg-obsidian-900 hover:bg-rose-950/60 border border-obsidian-600 text-slate-400 hover:text-rose-300 transition text-xs font-mono">✕</button>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <input id="customProfileNameInput" type="text" placeholder="Profile name..."
+              class="flex-1 min-w-0 px-2 py-1 rounded-lg bg-obsidian-900 border border-obsidian-600 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-violet-400" />
+            <button id="saveCustomProfileBtn"
+              class="px-2.5 py-1 rounded-lg bg-violet-500/20 hover:bg-violet-500/30 border border-violet-400/45 text-xs font-medium text-violet-200 transition shrink-0">Save</button>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button id="exportProfilesBtn"
+              class="py-1 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-[11px] text-slate-300 transition">Export JSON</button>
+            <button id="importProfilesBtn"
+              class="py-1 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-[11px] text-slate-300 transition">Import JSON</button>
+            <input id="importProfilesInput" type="file" accept=".json" class="hidden" />
+          </div>
+        </section>
+
+        <!-- Procedural IBL / Custom HDR -->
+        <section class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Environment IBL</span>
+            <span id="envSourceBadge"
+              class="px-1.5 py-0.5 rounded bg-sky-500/15 border border-sky-500/30 text-[10px] font-mono text-sky-300">RoomEnv</span>
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">IBL Intensity</span>
+              <span id="envIntensityVal" class="font-mono text-[11px] text-slate-300">1.00</span>
+            </div>
+            <input id="envIntensitySlider" type="range" min="0" max="3" step="0.05" value="1.0"
+              class="studio-slider w-full" />
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">IBL Rotation</span>
+              <span id="envRotationVal" class="font-mono text-[11px] text-slate-300">0°</span>
+            </div>
+            <input id="envRotationSlider" type="range" min="0" max="360" step="1" value="0"
+              class="studio-slider w-full" />
+          </div>
+
+          <label class="flex items-center justify-between text-xs cursor-pointer pt-1 border-t border-obsidian-600/60">
+            <span class="text-slate-300">Show HDRI as Backdrop</span>
+            <input id="envBackdropToggle" type="checkbox" class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">Backdrop Blur</span>
+              <span id="envBlurVal" class="font-mono text-[11px] text-slate-300">0.08</span>
+            </div>
+            <input id="envBlurSlider" type="range" min="0" max="1" step="0.02" value="0.08"
+              class="studio-slider w-full" />
+          </div>
+
+          <button id="resetEnvBtn"
+            class="hidden w-full py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-xs text-slate-300 transition">Revert
+            to Procedural Studio IBL</button>
+        </section>
+
+        <!-- 3-Point Studio Light Rig -->
+        <section class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">3-Point Studio Rig</span>
+            <button id="resetLightsBtn" class="text-[10px] text-sky-400 hover:underline">Preset Default</button>
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">Rig Azimuth</span>
+              <span id="rigAzimuthVal" class="font-mono text-[11px] text-slate-300">0°</span>
+            </div>
+            <input id="rigAzimuthSlider" type="range" min="0" max="360" step="1" value="0"
+              class="studio-slider w-full" />
+          </div>
+
+          <!-- Key Light -->
+          <div class="space-y-1 pt-1 border-t border-obsidian-600/60">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-200 font-medium">Key Light</span>
+              <div class="flex items-center gap-2">
+                <span id="keyIntVal" class="font-mono text-[11px] text-slate-400">2.4</span>
+                <input id="keyColorPicker" type="color" value="#fff5e6" class="studio-color" />
+              </div>
+            </div>
+            <input id="keyIntSlider" type="range" min="0" max="6" step="0.1" value="2.4" class="studio-slider w-full" />
+          </div>
+
+          <!-- Fill Light -->
+          <div class="space-y-1 pt-1 border-t border-obsidian-600/60">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-200 font-medium">Fill Light</span>
+              <div class="flex items-center gap-2">
+                <span id="fillIntVal" class="font-mono text-[11px] text-slate-400">1.0</span>
+                <input id="fillColorPicker" type="color" value="#b9d6ff" class="studio-color" />
+              </div>
+            </div>
+            <input id="fillIntSlider" type="range" min="0" max="4" step="0.1" value="1.0"
+              class="studio-slider w-full" />
+          </div>
+
+          <!-- Rim Light -->
+          <div class="space-y-1 pt-1 border-t border-obsidian-600/60">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-200 font-medium">Rim Light</span>
+              <div class="flex items-center gap-2">
+                <span id="rimIntVal" class="font-mono text-[11px] text-slate-400">1.5</span>
+                <input id="rimColorPicker" type="color" value="#7dd3fc" class="studio-color" />
+              </div>
+            </div>
+            <input id="rimIntSlider" type="range" min="0" max="6" step="0.1" value="1.5" class="studio-slider w-full" />
+          </div>
+        </section>
+
+        <!-- Tone Mapping & Exposure -->
+        <section class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-2.5">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tone Mapping &amp; Exposure
+          </div>
+          <select id="toneMappingSelect"
+            class="w-full bg-obsidian-900 border border-obsidian-600 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+            <option value="ACESFilmic">ACES Filmic</option>
+            <option value="AgX">AgX (Modern Filmic)</option>
+            <option value="Neutral">Khronos PBR Neutral</option>
+            <option value="Reinhard">Reinhard</option>
+            <option value="Linear">Linear (No Curve)</option>
+          </select>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">Exposure</span>
+              <span id="exposureVal" class="font-mono text-[11px] text-slate-300">1.05</span>
+            </div>
+            <input id="exposureSlider" type="range" min="0.2" max="2.5" step="0.05" value="1.05"
+              class="studio-slider w-full" />
+          </div>
+        </section>
+
+        <!-- Viewport Backdrop -->
+        <section class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-2.5">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Viewport Backdrop</div>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button data-bg="preset"
+              class="bg-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-medium border transition">Preset
+              Gradient</button>
+            <button data-bg="dark"
+              class="bg-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-medium border transition">Solid Dark</button>
+            <button data-bg="light"
+              class="bg-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-medium border transition">Solid
+              Light</button>
+            <button data-bg="checker"
+              class="bg-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-medium border transition">Checker
+              Alpha</button>
+          </div>
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-xs text-slate-300">Custom Solid Color</span>
+            <input id="customBgPicker" type="color" value="#121622" class="studio-color" />
+          </div>
+        </section>
+      </div>
+
+      <!-- TAB 3: LIVE MATERIAL INSPECTOR -->
+      <div id="rightTabMaterial" class="hidden flex-1 overflow-y-auto p-3 space-y-3">
+        <!-- Selection Header -->
+        <div class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-2.5 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Target</span>
+            <span id="matSelectionBadge" class="text-[11px] font-mono text-sky-300 truncate max-w-[180px]">All Model
+              Materials</span>
+          </div>
+          <select id="materialSelect"
+            class="w-full bg-obsidian-900 border border-obsidian-600 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"></select>
+        </div>
+
+        <!-- Material Properties Panel -->
+        <div id="materialControlsPanel" class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-3">
+          <div class="flex items-center justify-between">
+            <span id="matTypeBadge"
+              class="px-1.5 py-0.5 rounded bg-obsidian-700 text-[10px] font-mono text-slate-300">MeshStandardMaterial</span>
+            <button id="resetMatBtn" class="text-[10px] text-sky-400 hover:underline">Reset Material</button>
+          </div>
+
+          <div id="matColorRow" class="flex items-center justify-between text-xs">
+            <span class="text-slate-300">Base Color</span>
+            <div class="flex items-center gap-2">
+              <span id="matColorHex" class="font-mono text-[11px] text-slate-400">#ffffff</span>
+              <input id="matColorPicker" type="color" value="#ffffff" class="studio-color" />
+            </div>
+          </div>
+
+          <div id="matMetalRow" class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">Metalness</span>
+              <span id="matMetalVal" class="font-mono text-[11px] text-slate-300">0.00</span>
+            </div>
+            <input id="matMetalSlider" type="range" min="0" max="1" step="0.01" value="0"
+              class="studio-slider w-full" />
+          </div>
+
+          <div id="matRoughRow" class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">Roughness</span>
+              <span id="matRoughVal" class="font-mono text-[11px] text-slate-300">0.50</span>
+            </div>
+            <input id="matRoughSlider" type="range" min="0" max="1" step="0.01" value="0.5"
+              class="studio-slider w-full" />
+          </div>
+
+          <div id="matEmissiveRow" class="space-y-1.5 pt-1 border-t border-obsidian-600/60">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-300">Emissive</span>
+              <div class="flex items-center gap-2">
+                <span id="matEmissiveVal" class="font-mono text-[11px] text-slate-300">0.00</span>
+                <input id="matEmissivePicker" type="color" value="#000000" class="studio-color" />
+              </div>
+            </div>
+            <input id="matEmissiveSlider" type="range" min="0" max="4" step="0.05" value="0"
+              class="studio-slider w-full" />
+          </div>
+
+          <div class="space-y-1 pt-1 border-t border-obsidian-600/60">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-300">Opacity</span>
+              <span id="matOpacityVal" class="font-mono text-[11px] text-slate-300">1.00</span>
+            </div>
+            <input id="matOpacitySlider" type="range" min="0.05" max="1" step="0.01" value="1"
+              class="studio-slider w-full" />
+          </div>
+
+          <label class="flex items-center justify-between text-xs cursor-pointer pt-1">
+            <span class="text-slate-300">Flat Shading</span>
+            <input id="matFlatToggle" type="checkbox" class="accent-sky-400 w-3.5 h-3.5 cursor-pointer" />
+          </label>
+
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-300">Render Side</span>
+            <select id="matSideSelect"
+              class="bg-obsidian-900 border border-obsidian-600 rounded-md px-2 py-1 text-[11px] text-slate-200 focus:outline-none">
+              <option value="0">Front Side</option>
+              <option value="1">Back Side</option>
+              <option value="2">Double Side</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Attached Texture Channels -->
+        <div class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-2">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Texture Maps</div>
+          <div id="textureChannelsList" class="space-y-1.5 text-xs"></div>
+        </div>
+      </div>
+
+      <!-- TAB 4: PRE-FLIGHT GAME OPTIMIZER & TRANSFORM BAKER -->
+      <div id="rightTabOptimize" class="hidden flex-1 overflow-y-auto p-3 space-y-4">
+
+        <!-- Budget Audit Summary -->
+        <section class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">WebGL2 Budget Audit</span>
+            <span id="optBudgetBadge" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">READY</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-[11px] font-mono">
+            <div class="p-2 rounded-lg bg-obsidian-900 border border-obsidian-700">
+              <div class="text-[9px] text-slate-500">DRAW CALLS</div>
+              <div id="optCallsVal" class="text-sm font-semibold text-slate-200">0</div>
+            </div>
+            <div class="p-2 rounded-lg bg-obsidian-900 border border-obsidian-700">
+              <div class="text-[9px] text-slate-500">TRIANGLES</div>
+              <div id="optTrisVal" class="text-sm font-semibold text-slate-200">0</div>
+            </div>
+            <div class="p-2 rounded-lg bg-obsidian-900 border border-obsidian-700">
+              <div class="text-[9px] text-slate-500">STATIC MESHES</div>
+              <div id="optMeshCountVal" class="text-sm font-semibold text-slate-200">0</div>
+            </div>
+            <div class="p-2 rounded-lg bg-obsidian-900 border border-obsidian-700">
+              <div class="text-[9px] text-slate-500">UNIQUE MATS</div>
+              <div id="optMatCountVal" class="text-sm font-semibold text-slate-200">0</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Draw Call Reducer -->
+        <section class="rounded-xl bg-obsidian-850 border border-sky-500/25 p-3 space-y-2.5">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-sky-300">Draw Call Optimizer</div>
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            Merges static meshes that share the same material into single geometries. Skinned/rigged meshes are preserved untouched.
+          </p>
+          <button id="optMergeByMatBtn"
+            class="w-full py-2 px-3 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/45 text-xs font-semibold text-sky-200 transition">
+            Merge Static Meshes by Material
+          </button>
+        </section>
+
+        <!-- Transform & Origin Baker -->
+        <section class="rounded-xl bg-obsidian-850 border border-obsidian-600 p-3 space-y-3">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Transform &amp; Origin Baker</div>
+
+          <div class="space-y-1.5">
+            <div class="text-xs text-slate-300">Rotate Forward Axis (Y)</div>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button data-rot-y="-90" class="opt-rot-btn py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-xs font-mono text-slate-200 transition">-90°</button>
+              <button data-rot-y="90" class="opt-rot-btn py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-xs font-mono text-slate-200 transition">+90°</button>
+              <button data-rot-y="180" class="opt-rot-btn py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-xs font-mono text-slate-200 transition">180°</button>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 pt-1 border-t border-obsidian-600/60">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-300">Target Height (meters)</span>
+              <span id="optCurrentHeightVal" class="font-mono text-[10px] text-slate-400">0.00m</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <input id="optTargetHeightInput" type="number" min="0.05" max="100" step="0.05" value="1.75"
+                class="flex-1 px-2.5 py-1.5 rounded-lg bg-obsidian-900 border border-obsidian-600 text-xs font-mono text-slate-200 focus:outline-none focus:border-sky-500" />
+              <button id="optApplyHeightBtn"
+                class="px-3 py-1.5 rounded-lg bg-obsidian-750 hover:bg-obsidian-700 border border-obsidian-600 text-xs font-medium text-slate-200 transition">Scale</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-obsidian-600/60">
+            <button id="optBakeOriginBtn"
+              class="py-1.5 px-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-[11px] font-medium text-emerald-200 transition">Bake Pivot Y=0</button>
+            <button id="optExportGlbShortcutBtn"
+              class="py-1.5 px-2 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-[11px] font-medium text-sky-200 transition">Export .GLB</button>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- KEYBOARD SHORTCUTS MODAL                                                -->
+  <!-- ======================================================================= -->
+  <div id="shortcutsModal"
+    class="hidden fixed inset-0 z-50 bg-obsidian-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-2xl bg-obsidian-800 border border-obsidian-600 shadow-2xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-obsidian-600 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-sm text-white">aSEEt Keyboard Shortcuts</span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-obsidian-700 text-sky-300">STUDIO</span>
+        </div>
+        <button id="closeShortcutsBtn"
+          class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-obsidian-700 transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Shading Modes</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">1
+            – 7</kbd></div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Frame Asset</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">F</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Reset Camera</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">R</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Play / Pause Anim</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">Space</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Zen / Clean View</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">H</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Toggle Floor Grid</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">G</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Lit + Wireframe</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">W</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Turntable Rotate</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">T</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Persp / Ortho</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">O</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Clear Selection</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">Esc</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">JS Code Studio</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">C</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Run JS Code</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">Ctrl+Enter</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Save JS File</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">Ctrl+S</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-obsidian-700/60"><span
+            class="text-slate-300">Export GLB</span><kbd
+            class="px-1.5 py-0.5 rounded bg-obsidian-900 border border-obsidian-600 font-mono text-[10px] text-sky-300">Shift+E</kbd>
+        </div>
+      </div>
+      <div class="px-4 py-2.5 bg-obsidian-850 border-t border-obsidian-600 text-[11px] text-slate-400">
+        Tip: Click any mesh in the viewport to inspect its material &amp; highlight it in the hierarchy tree. Drop a
+        <span class="font-mono text-emerald-300">.hdr</span> file anytime to swap studio IBL lighting.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (window.location.protocol === 'file:') {
+      const banner = document.createElement('div');
+      banner.className = 'fixed top-14 left-1/2 -translate-x-1/2 z-50 max-w-xl px-4 py-2.5 rounded-xl bg-amber-950/95 border border-amber-400/50 text-amber-100 text-xs shadow-2xl flex items-center gap-3';
+      banner.innerHTML = '<span><strong>Local HTTP Server Required:</strong> Browsers block ES module imports over <code class="font-mono">file://</code>. Serve this folder with VS Code Live Server, <code class="font-mono">npx serve .</code>, or <code class="font-mono">python -m http.server 8080</code>.</span><button onclick="this.parentElement.remove()" class="text-amber-300 hover:text-white font-mono">✕</button>';
+      document.body.appendChild(banner);
+    }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
